@@ -1,0 +1,463 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@layer base {
+  :root {
+    --background: 255 255 255;
+    --foreground: 26 43 76;
+    --card: 255 255 255;
+    --card-foreground: 26 43 76;
+    --primary: 0 102 204;
+    --primary-foreground: 255 255 255;
+    --secondary: 0 61 122;
+    --secondary-foreground: 255 255 255;
+    --muted: 241 245 249;
+    --muted-foreground: 100 116 139;
+    --accent: 0 163 224;
+    --accent-foreground: 255 255 255;
+    --border: 226 232 240;
+    --ring: 0 102 204;
+  }
+
+  .dark {
+    --background: 10 14 26;
+    --foreground: 241 245 249;
+    --card: 15 22 41;
+    --card-foreground: 241 245 249;
+    --primary: 0 102 204;
+    --primary-foreground: 255 255 255;
+    --secondary: 0 163 224;
+    --secondary-foreground: 255 255 255;
+    --muted: 26 31 46;
+    --muted-foreground: 148 163 184;
+    --accent: 0 163 224;
+    --accent-foreground: 10 14 26;
+    --border: 30 41 59;
+    --ring: 0 163 224;
+  }
+
+  * {
+    @apply border-slate-200 dark:border-white/10;
+  }
+
+  body {
+    @apply bg-white dark:bg-deep-900 text-blueally-navy dark:text-slate-100;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  /* ============================================ */
+  /* Glass Card System                            */
+  /* ============================================ */
+  .glass-card {
+    @apply bg-white dark:bg-glass-medium backdrop-blur-xl rounded-2xl border border-slate-200 dark:border-glass-border shadow-card dark:shadow-none transition-all duration-300;
+  }
+
+  .glass-card-hover {
+    @apply glass-card hover:dark:bg-glass-heavy hover:shadow-card-hover hover:border-blueally-300 dark:hover:border-white/20 hover:dark:shadow-glow-blue;
+  }
+
+  .glass-card-interactive {
+    @apply glass-card-hover cursor-pointer active:scale-[0.98];
+  }
+
+  /* Legacy compat — ba-card maps to glass-card */
+  .ba-card {
+    @apply glass-card;
+  }
+
+  .ba-card-hover {
+    @apply glass-card-hover;
+  }
+
+  /* ============================================ */
+  /* Glow Effects                                 */
+  /* ============================================ */
+  .glow-border {
+    @apply relative;
+  }
+  .glow-border::before {
+    content: '';
+    @apply absolute -inset-px rounded-2xl;
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.3), rgba(0, 163, 224, 0.1), transparent);
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .glow-border:hover::before {
+    opacity: 1;
+  }
+
+  .glow-dot {
+    @apply w-2 h-2 rounded-full bg-blueally-accent;
+    box-shadow: 0 0 8px rgba(0, 163, 224, 0.6);
+  }
+
+  /* ============================================ */
+  /* Stat Numbers                                 */
+  /* ============================================ */
+  .stat-number {
+    @apply font-black tracking-tight;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat-number-lg {
+    @apply stat-number text-4xl md:text-5xl lg:text-6xl;
+  }
+
+  .stat-number-xl {
+    @apply stat-number text-5xl md:text-6xl lg:text-7xl;
+  }
+
+  /* ============================================ */
+  /* Buttons                                      */
+  /* ============================================ */
+  .ba-btn {
+    @apply inline-flex items-center justify-center rounded-xl px-5 py-2.5 font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-deep-900;
+  }
+
+  .ba-btn-primary {
+    @apply ba-btn bg-blueally-primary text-white hover:bg-blueally-600 focus:ring-blueally-500 dark:shadow-glow-blue dark:hover:shadow-[0_0_30px_rgba(0,102,204,0.5)];
+  }
+
+  .ba-btn-secondary {
+    @apply ba-btn bg-blueally-secondary text-white hover:bg-blueally-700 focus:ring-blueally-600;
+  }
+
+  .ba-btn-accent {
+    @apply ba-btn bg-blueally-accent text-white hover:bg-blueally-400 focus:ring-blueally-accent;
+  }
+
+  .ba-btn-outline {
+    @apply ba-btn border border-blueally-primary/30 text-blueally-primary dark:text-blueally-accent hover:bg-blueally-50 dark:hover:bg-blueally-500/10 focus:ring-blueally-500;
+  }
+
+  .ba-btn-ghost {
+    @apply ba-btn text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5;
+  }
+
+  .ba-btn-glass {
+    @apply ba-btn bg-glass-medium backdrop-blur-xl border border-glass-border text-white hover:bg-glass-heavy;
+  }
+
+  /* ============================================ */
+  /* Inputs                                       */
+  /* ============================================ */
+  .ba-input {
+    @apply w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-white/10 bg-white dark:bg-glass-light text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blueally-500 focus:border-transparent transition-all duration-200 placeholder:text-slate-400 dark:placeholder:text-slate-500;
+  }
+
+  /* ============================================ */
+  /* Badges                                       */
+  /* ============================================ */
+  .ba-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .ba-badge-champion {
+    @apply ba-badge bg-quadrant-champion/10 text-quadrant-champion dark:bg-quadrant-champion/20;
+  }
+
+  .ba-badge-quickwin {
+    @apply ba-badge bg-quadrant-quickwin/10 text-quadrant-quickwin dark:bg-quadrant-quickwin/20;
+  }
+
+  .ba-badge-strategic {
+    @apply ba-badge bg-quadrant-strategic/10 text-quadrant-strategic dark:bg-quadrant-strategic/20;
+  }
+
+  .ba-badge-foundation {
+    @apply ba-badge bg-quadrant-foundation/10 text-quadrant-foundation dark:bg-quadrant-foundation/20;
+  }
+
+  .ba-badge-t1 {
+    @apply ba-badge bg-track-t1/10 text-track-t1 dark:bg-track-t1/20;
+  }
+
+  .ba-badge-t2 {
+    @apply ba-badge bg-track-t2/10 text-track-t2 dark:bg-track-t2/20;
+  }
+
+  .ba-badge-t3 {
+    @apply ba-badge bg-track-t3/10 text-track-t3 dark:bg-track-t3/20;
+  }
+
+  .ba-badge-industrial {
+    @apply ba-badge bg-cohort-industrial/10 text-cohort-industrial;
+  }
+
+  .ba-badge-services {
+    @apply ba-badge bg-cohort-services/10 text-cohort-services;
+  }
+
+  .ba-badge-consumer {
+    @apply ba-badge bg-cohort-consumer/10 text-cohort-consumer;
+  }
+
+  .ba-badge-healthcare {
+    @apply ba-badge bg-cohort-healthcare/10 text-cohort-healthcare;
+  }
+
+  .ba-badge-logistics {
+    @apply ba-badge bg-cohort-logistics/10 text-cohort-logistics;
+  }
+
+  /* ============================================ */
+  /* Metric Cards                                 */
+  /* ============================================ */
+  .ba-metric-card {
+    @apply glass-card p-6 flex flex-col;
+  }
+
+  .ba-metric-label {
+    @apply text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider;
+  }
+
+  .ba-metric-value {
+    @apply text-3xl font-bold text-blueally-navy dark:text-white mt-1;
+  }
+
+  .ba-metric-delta {
+    @apply text-sm font-medium mt-2;
+  }
+
+  .ba-metric-delta-positive {
+    @apply ba-metric-delta text-success;
+  }
+
+  .ba-metric-delta-negative {
+    @apply ba-metric-delta text-danger;
+  }
+
+  /* ============================================ */
+  /* Tables                                       */
+  /* ============================================ */
+  .ba-table {
+    @apply w-full text-sm text-left;
+  }
+
+  .ba-table thead {
+    @apply bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-slate-300 uppercase text-xs tracking-wider;
+  }
+
+  .ba-table th {
+    @apply px-4 py-3 font-semibold;
+  }
+
+  .ba-table tbody tr {
+    @apply border-b border-slate-200 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors;
+  }
+
+  .ba-table td {
+    @apply px-4 py-4;
+  }
+
+  /* ============================================ */
+  /* Tabs                                         */
+  /* ============================================ */
+  .ba-tab {
+    @apply px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-blueally-primary dark:hover:text-blueally-accent transition-colors border-b-2 border-transparent;
+  }
+
+  .ba-tab-active {
+    @apply ba-tab text-blueally-primary dark:text-blueally-accent border-blueally-primary dark:border-blueally-accent;
+  }
+
+  /* ============================================ */
+  /* Tooltips                                     */
+  /* ============================================ */
+  .ba-tooltip {
+    @apply absolute z-50 px-3 py-2 text-sm text-white bg-deep-600 rounded-xl shadow-lg border border-glass-border backdrop-blur-xl;
+  }
+
+  /* ============================================ */
+  /* Progress Bars                                */
+  /* ============================================ */
+  .ba-progress {
+    @apply w-full h-2 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden;
+  }
+
+  .ba-progress-bar {
+    @apply h-full rounded-full transition-all duration-500 ease-out;
+  }
+
+  /* ============================================ */
+  /* Hero Section                                 */
+  /* ============================================ */
+  .ba-hero {
+    @apply relative overflow-hidden rounded-3xl p-8 md:p-12;
+    background: linear-gradient(135deg, #0066CC 0%, #003D7A 40%, #0A0E1A 100%);
+  }
+
+  .ba-hero::before {
+    content: '';
+    @apply absolute inset-0;
+    background: radial-gradient(ellipse at 30% 0%, rgba(0, 163, 224, 0.2), transparent 60%);
+  }
+
+  /* ============================================ */
+  /* Gradient Text                                */
+  /* ============================================ */
+  .ba-gradient-text {
+    @apply bg-gradient-to-r from-blueally-primary via-blueally-accent to-blueally-primary bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient;
+  }
+
+  /* ============================================ */
+  /* Ambient Background                           */
+  /* ============================================ */
+  .ambient-bg {
+    @apply fixed inset-0 pointer-events-none;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(0, 102, 204, 0.08), transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(0, 163, 224, 0.05), transparent 50%),
+      radial-gradient(ellipse at 50% 80%, rgba(99, 102, 241, 0.04), transparent 50%);
+  }
+
+  /* ============================================ */
+  /* Nav Rail                                     */
+  /* ============================================ */
+  .nav-rail {
+    @apply fixed left-0 top-0 h-full w-[72px] bg-white/80 dark:bg-deep-800/80 backdrop-blur-2xl border-r border-slate-200 dark:border-glass-border z-40 flex flex-col items-center py-4;
+  }
+
+  .nav-rail-item {
+    @apply w-12 h-12 rounded-xl flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-blueally-primary dark:hover:text-blueally-accent hover:bg-slate-100 dark:hover:bg-white/5 transition-all duration-200 cursor-pointer relative;
+  }
+
+  .nav-rail-item-active {
+    @apply nav-rail-item text-white bg-blueally-primary dark:bg-blueally-primary dark:shadow-glow-blue;
+  }
+
+  /* ============================================ */
+  /* Scrollbar                                    */
+  /* ============================================ */
+  .ba-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+  }
+
+  .ba-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .ba-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .ba-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(148, 163, 184, 0.3);
+    border-radius: 3px;
+  }
+
+  /* ============================================ */
+  /* Sidebar (legacy compat)                      */
+  /* ============================================ */
+  .ba-sidebar {
+    @apply nav-rail;
+  }
+
+  .ba-main {
+    @apply ml-0 md:ml-[72px] min-h-screen bg-slate-50 dark:bg-deep-900 transition-all duration-300;
+  }
+
+  /* ============================================ */
+  /* Interactive                                  */
+  /* ============================================ */
+  .ba-interactive {
+    @apply cursor-pointer transition-all duration-200 hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  /* ============================================ */
+  /* Chart Container                              */
+  /* ============================================ */
+  .ba-chart-container {
+    @apply glass-card p-6 h-[400px];
+  }
+
+  /* ============================================ */
+  /* Glass Effect                                 */
+  /* ============================================ */
+  .ba-glass {
+    @apply bg-white/80 dark:bg-glass-medium backdrop-blur-xl;
+  }
+
+  .ba-highlight {
+    @apply bg-blueally-50 dark:bg-blueally-500/10 px-2 py-1 rounded-lg font-semibold text-blueally-700 dark:text-blueally-300;
+  }
+
+  .ba-stat-ring {
+    @apply relative inline-flex items-center justify-center;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .font-tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ReactFlow overrides for dark theme */
+  .react-flow__background {
+    @apply dark:opacity-20;
+  }
+}
+
+/* Dark scrollbar override */
+.dark .ba-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.2);
+}
+
+/* Print styles */
+@media print {
+  .nav-rail,
+  .ba-sidebar,
+  .no-print {
+    display: none !important;
+  }
+
+  .ba-main {
+    margin-left: 0 !important;
+  }
+
+  .glass-card,
+  .ba-card {
+    box-shadow: none;
+    border: 1px solid #e2e8f0;
+    backdrop-filter: none;
+    background: white;
+  }
+}
+
+/* Recharts custom styles */
+.recharts-wrapper {
+  font-family: 'Inter', sans-serif !important;
+}
+
+.recharts-cartesian-axis-tick-value {
+  font-size: 12px;
+  fill: theme('colors.slate.500');
+}
+
+.dark .recharts-cartesian-axis-tick-value {
+  fill: theme('colors.slate.400');
+}
+
+.recharts-legend-item-text {
+  color: theme('colors.slate.700') !important;
+}
+
+.dark .recharts-legend-item-text {
+  color: theme('colors.slate.300') !important;
+}
+
+/* ReactFlow styles */
+.react-flow__node {
+  font-family: 'Inter', sans-serif;
+}
