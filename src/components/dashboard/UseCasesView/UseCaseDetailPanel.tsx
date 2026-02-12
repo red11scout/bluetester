@@ -23,7 +23,12 @@ import {
   Check,
   BarChart3,
   Activity,
-  FileText
+  FileText,
+  GitCompareArrows,
+  SlidersHorizontal,
+  Loader2,
+  Save,
+  RotateCcw
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { ExtractedUseCase, ExtractedFrictionPoint, ExtractedKPI } from '@/lib/portfolioTypes'
@@ -42,6 +47,8 @@ interface UseCaseDetailPanelProps {
     specialistRate: number
     analystRate: number
   }
+  onNavigateToWorkflow?: (companyName: string, useCaseName: string) => void
+  onAiSuggest?: (useCase: ExtractedUseCase) => void
 }
 
 function formatCurrency(value: number): string {
@@ -76,9 +83,16 @@ function getQuadrant(useCase: ExtractedUseCase): string {
   return 'Foundation'
 }
 
-export function UseCaseDetailPanel({ useCase, onClose, frictionPoints, kpis, assumptions }: UseCaseDetailPanelProps) {
+export function UseCaseDetailPanel({ useCase, onClose, frictionPoints, kpis, assumptions, onNavigateToWorkflow, onAiSuggest }: UseCaseDetailPanelProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'benefits' | 'effort' | 'integration'>('overview')
   const [copied, setCopied] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [localAssumptions, setLocalAssumptions] = useState({
+    efficiencyFactor: assumptions.efficiencyFactor,
+    adoptionFactor: assumptions.adoptionFactor,
+    confidenceFactor: assumptions.confidenceFactor,
+  })
 
   // Find related friction points and KPIs
   const relatedFrictionPoints = frictionPoints.filter(fp =>
@@ -97,10 +111,35 @@ export function UseCaseDetailPanel({ useCase, onClose, frictionPoints, kpis, ass
     setTimeout(() => setCopied(false), 2000)
   }
 
-  // Reset tab when use case changes
+  // Reset tab and editing state when use case changes
   useEffect(() => {
     setActiveTab('overview')
-  }, [useCase?.id])
+    setIsEditing(false)
+    setLocalAssumptions({
+      efficiencyFactor: assumptions.efficiencyFactor,
+      adoptionFactor: assumptions.adoptionFactor,
+      confidenceFactor: assumptions.confidenceFactor,
+    })
+  }, [useCase?.id, assumptions])
+
+  // Computed adjusted value based on local assumption sliders
+  const adjustmentMultiplier = useCase ? (
+    (localAssumptions.efficiencyFactor * localAssumptions.adoptionFactor * localAssumptions.confidenceFactor) /
+    (assumptions.efficiencyFactor * assumptions.adoptionFactor * assumptions.confidenceFactor)
+  ) : 1
+
+  const adjustedTotalValue = useCase ? Math.round(useCase.totalAnnualValue * adjustmentMultiplier) : 0
+  const valueDelta = useCase ? adjustedTotalValue - useCase.totalAnnualValue : 0
+
+  const handleAiSuggest = async () => {
+    if (!useCase || !onAiSuggest) return
+    setAiLoading(true)
+    try {
+      await onAiSuggest(useCase)
+    } finally {
+      setAiLoading(false)
+    }
+  }
 
   if (!useCase) return null
 
@@ -204,9 +243,21 @@ export function UseCaseDetailPanel({ useCase, onClose, frictionPoints, kpis, ass
               <div className="mt-4 p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-sm text-slate-500 dark:text-slate-400">Total Annual Value</div>
-                    <div className="text-3xl font-bold text-blueally-primary">
-                      {formatCurrency(useCase.totalAnnualValue)}
+                    <div className="text-sm text-slate-500 dark:text-slate-400">
+                      {isEditing ? 'Adjusted Annual Value' : 'Total Annual Value'}
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <div className="text-3xl font-bold text-blueally-primary">
+                        {isEditing ? formatCurrency(adjustedTotalValue) : formatCurrency(useCase.totalAnnualValue)}
+                      </div>
+                      {isEditing && valueDelta !== 0 && (
+                        <span className={cn(
+                          'text-sm font-semibold',
+                          valueDelta > 0 ? 'text-emerald-500' : 'text-red-500'
+                        )}>
+                          {valueDelta > 0 ? '+' : ''}{formatCurrency(valueDelta)}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <div className="text-right">
@@ -238,6 +289,25 @@ export function UseCaseDetailPanel({ useCase, onClose, frictionPoints, kpis, ass
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Action Bar */}
+            <div className="px-6 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center gap-2">
+              <button
+                onClick={() => onNavigateToWorkflow?.(useCase.companyName, useCase.useCaseName)}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-gradient-to-r from-blueally-primary to-blueally-accent text-white hover:shadow-glow-blue transition-all"
+              >
+                <GitCompareArrows className="w-4 h-4" />
+                Generate Workflow
+              </button>
+              <button
+                onClick={handleAiSuggest}
+                disabled={aiLoading}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border border-blueally-200 dark:border-blueally-800 text-blueally-600 dark:text-blueally-400 hover:bg-blueally-50 dark:hover:bg-blueally-900/20 transition-colors disabled:opacity-50"
+              >
+                {aiLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                AI Suggest
+              </button>
             </div>
 
             {/* Content */}
@@ -367,31 +437,90 @@ export function UseCaseDetailPanel({ useCase, onClose, frictionPoints, kpis, ass
                     </div>
                   </section>
 
-                  {/* Applied Assumptions */}
+                  {/* Inline Assumption Editor */}
                   <section>
-                    <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
-                      Applied Assumptions
-                    </h3>
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg text-center">
-                        <div className="text-2xl font-bold text-slate-900 dark:text-white">
-                          {Math.round(assumptions.efficiencyFactor * 100)}%
-                        </div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400">Efficiency</div>
-                      </div>
-                      <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg text-center">
-                        <div className="text-2xl font-bold text-slate-900 dark:text-white">
-                          {Math.round(assumptions.adoptionFactor * 100)}%
-                        </div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400">Adoption</div>
-                      </div>
-                      <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg text-center">
-                        <div className="text-2xl font-bold text-slate-900 dark:text-white">
-                          {Math.round(assumptions.confidenceFactor * 100)}%
-                        </div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400">Confidence</div>
-                      </div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        {isEditing ? 'Adjust Assumptions' : 'Applied Assumptions'}
+                      </h3>
+                      <button
+                        onClick={() => {
+                          if (isEditing) {
+                            setLocalAssumptions({
+                              efficiencyFactor: assumptions.efficiencyFactor,
+                              adoptionFactor: assumptions.adoptionFactor,
+                              confidenceFactor: assumptions.confidenceFactor,
+                            })
+                          }
+                          setIsEditing(!isEditing)
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors bg-blueally-50 dark:bg-blueally-900/20 text-blueally-600 dark:text-blueally-400 hover:bg-blueally-100 dark:hover:bg-blueally-900/30"
+                      >
+                        {isEditing ? <RotateCcw className="w-3 h-3" /> : <SlidersHorizontal className="w-3 h-3" />}
+                        {isEditing ? 'Reset' : 'Edit'}
+                      </button>
                     </div>
+
+                    {isEditing ? (
+                      <div className="space-y-4">
+                        <InlineSlider
+                          label="Efficiency Factor"
+                          value={localAssumptions.efficiencyFactor}
+                          onChange={(v) => setLocalAssumptions(prev => ({ ...prev, efficiencyFactor: v }))}
+                          min={0.5}
+                          max={1.0}
+                          step={0.05}
+                        />
+                        <InlineSlider
+                          label="Adoption Factor"
+                          value={localAssumptions.adoptionFactor}
+                          onChange={(v) => setLocalAssumptions(prev => ({ ...prev, adoptionFactor: v }))}
+                          min={0.5}
+                          max={1.0}
+                          step={0.05}
+                        />
+                        <InlineSlider
+                          label="Confidence Factor"
+                          value={localAssumptions.confidenceFactor}
+                          onChange={(v) => setLocalAssumptions(prev => ({ ...prev, confidenceFactor: v }))}
+                          min={0.5}
+                          max={1.0}
+                          step={0.05}
+                        />
+                        {valueDelta !== 0 && (
+                          <div className={cn(
+                            'p-3 rounded-lg border text-sm',
+                            valueDelta > 0
+                              ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300'
+                              : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300'
+                          )}>
+                            Adjusted value: <span className="font-bold">{formatCurrency(adjustedTotalValue)}</span>
+                            {' '}({valueDelta > 0 ? '+' : ''}{formatCurrency(valueDelta)} from baseline)
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg text-center">
+                          <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                            {Math.round(assumptions.efficiencyFactor * 100)}%
+                          </div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400">Efficiency</div>
+                        </div>
+                        <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg text-center">
+                          <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                            {Math.round(assumptions.adoptionFactor * 100)}%
+                          </div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400">Adoption</div>
+                        </div>
+                        <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg text-center">
+                          <div className="text-2xl font-bold text-slate-900 dark:text-white">
+                            {Math.round(assumptions.confidenceFactor * 100)}%
+                          </div>
+                          <div className="text-xs text-slate-500 dark:text-slate-400">Confidence</div>
+                        </div>
+                      </div>
+                    )}
                   </section>
                 </div>
               )}
@@ -687,6 +816,49 @@ function ScoreCard({ label, value, max, color }: ScoreCardProps) {
           className={cn('h-full rounded-full transition-all', colorClasses[color])}
           style={{ width: `${percentage}%` }}
         />
+      </div>
+    </div>
+  )
+}
+
+// Inline Slider Component for assumption editing
+interface InlineSliderProps {
+  label: string
+  value: number
+  onChange: (value: number) => void
+  min: number
+  max: number
+  step: number
+}
+
+function InlineSlider({ label, value, onChange, min, max, step }: InlineSliderProps) {
+  return (
+    <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{label}</span>
+        <span className="text-lg font-bold text-blueally-primary tabular-nums">{Math.round(value * 100)}%</span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(parseFloat(e.target.value))}
+        className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full appearance-none cursor-pointer
+          [&::-webkit-slider-thumb]:appearance-none
+          [&::-webkit-slider-thumb]:w-4
+          [&::-webkit-slider-thumb]:h-4
+          [&::-webkit-slider-thumb]:rounded-full
+          [&::-webkit-slider-thumb]:bg-blueally-primary
+          [&::-webkit-slider-thumb]:cursor-pointer
+          [&::-webkit-slider-thumb]:shadow-md
+          [&::-webkit-slider-thumb]:transition-transform
+          [&::-webkit-slider-thumb]:hover:scale-110"
+      />
+      <div className="flex justify-between text-[10px] text-slate-400 mt-1">
+        <span>{Math.round(min * 100)}%</span>
+        <span>{Math.round(max * 100)}%</span>
       </div>
     </div>
   )

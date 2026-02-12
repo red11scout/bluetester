@@ -64,7 +64,13 @@ export function UseCaseCard({ useCase, onClick }: UseCaseCardProps) {
     <motion.div
       whileHover={{ y: -4, boxShadow: '0 12px 24px -8px rgba(0, 102, 204, 0.15)' }}
       onClick={onClick}
-      className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden cursor-pointer transition-colors hover:border-blueally-300 dark:hover:border-blueally-700 h-full flex flex-col"
+      className={cn(
+        'rounded-xl overflow-hidden cursor-pointer transition-all h-full flex flex-col',
+        'bg-white dark:bg-glass-medium border hover:border-blueally-300 dark:hover:border-blueally-700',
+        useCase.priorityTier === 'Critical'
+          ? 'border-red-200 dark:border-red-900/50 dark:shadow-[0_0_15px_rgba(239,68,68,0.1)]'
+          : 'border-slate-200 dark:border-glass-border'
+      )}
     >
       {/* Header */}
       <div className="p-4 pb-3 border-b border-slate-100 dark:border-slate-800">

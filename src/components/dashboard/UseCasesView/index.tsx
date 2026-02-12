@@ -26,6 +26,7 @@ import {
 import { cn } from '@/lib/utils'
 import { COMPANIES, USE_CASES, FRICTION_POINTS, KPIS, STRATEGIC_THEMES } from '@/lib/portfolioData.generated'
 import type { ExtractedUseCase } from '@/lib/portfolioTypes'
+import { useDashboardStore } from '@/lib/store'
 import { UseCaseCard } from './UseCaseCard'
 import { UseCaseDetailPanel } from './UseCaseDetailPanel'
 import { UseCasesFilters, type FilterState } from './UseCasesFilters'
@@ -502,6 +503,16 @@ export function UseCasesView() {
         frictionPoints={FRICTION_POINTS}
         kpis={KPIS}
         assumptions={assumptions}
+        onNavigateToWorkflow={(companyName, useCaseName) => {
+          setSelectedUseCase(null)
+          useDashboardStore.getState().setActiveTab('workflow')
+        }}
+        onAiSuggest={async (uc) => {
+          window.dispatchEvent(new CustomEvent('toggle-ai-assistant'))
+          window.dispatchEvent(new CustomEvent('ai-assistant-message', {
+            detail: `Suggest improvements for the "${uc.useCaseName}" use case at ${uc.companyName}. Current value: $${(uc.totalAnnualValue / 1000).toFixed(0)}K. How can we increase the impact?`
+          }))
+        }}
       />
 
       {/* Formula Editor Modal */}
